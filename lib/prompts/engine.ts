@@ -5,7 +5,7 @@ import type {
   ProductCategory,
   StylePreset,
 } from "@/types";
-import { ASSETS, ASSET_LIST } from "./platforms";
+import { ASSETS } from "./platforms";
 import { PRODUCTS } from "./products";
 import { STYLES } from "./styles";
 import { getScene } from "./scenes";
@@ -14,8 +14,44 @@ const NEGATIVE_PROMPT =
   "no harsh fluorescent light, no plastic toy look, no cluttered background, no oversaturated colors, no low-quality stock-photo styling, no neon, no ai artifacts, no warped text";
 
 /**
- * Build a single hidden prompt by composing:
- *   product brief × style direction × asset/platform spec × scene
+ * IMAGE-TO-IMAGE prompt. Used with OpenAI images.edit — the user's
+ * actual product photo is the input. The prompt instructs the model to
+ * preserve the product exactly and only restage the environment around it.
+ */
+export function buildEditPrompt(opts: {
+  product: ProductCategory;
+  style: StylePreset;
+  asset: AssetType;
+  customNotes?: string;
+}): string {
+  const product = PRODUCTS[opts.product];
+  const style = STYLES[opts.style];
+  const asset = ASSETS[opts.asset];
+  const scene = getScene(opts.product, opts.asset);
+  const productPhrase = product.keywords[0] ?? product.label.toLowerCase();
+
+  const sections = [
+    `Restage the exact ${productPhrase} from the input image into a new premium scene.`,
+
+    // The critical preservation instruction
+    `CRITICAL: keep the product itself visually identical — same shape, label, text, colors, branding, proportions, materials, and packaging. Do not redraw, redesign, or change the product. Only the background, lighting, props, and composition change.`,
+
+    `New scene: ${scene}.`,
+    `Aesthetic direction: ${style.description} Mood: ${style.mood}.`,
+    `Lighting: ${style.lighting}. Surrounding materials & textures: ${style.materials}.`,
+    `Color palette for the environment (not the product): ${style.palette.join(", ")}.`,
+    `Composition: ${style.composition}. Output as a ${asset.aspect} (${asset.orientation}) ${asset.label.toLowerCase()} for ${asset.platform}.`,
+    `Quality: editorial, magazine-grade, premium ecommerce, photoreal, warm and emotional. The product should be the clear hero of the frame.`,
+    `Avoid: ${NEGATIVE_PROMPT}.`,
+    opts.customNotes ? `Brand notes: ${opts.customNotes}.` : "",
+  ];
+
+  return sections.filter(Boolean).join(" ");
+}
+
+/**
+ * Text-to-image fallback (no user photo). Less faithful, kept for
+ * placeholder / preview paths.
  */
 export function buildPrompt(opts: {
   product: ProductCategory;
@@ -72,62 +108,37 @@ const ASSET_PLAYLISTS: Record<ProductCategory, AssetType[]> = {
   kids_book: [
     "premium_product_photo",
     "lifestyle_mockup",
-    "pinterest_pin",
     "instagram_post",
-    "instagram_story",
-    "ecommerce_thumbnail",
+    "pinterest_pin",
     "ad_creative",
-    "shopee_cover",
-    "packaging_preview",
-    "whatsapp_catalog",
   ],
   tshirt: [
     "premium_product_photo",
     "lifestyle_mockup",
     "ecommerce_thumbnail",
     "instagram_post",
-    "pinterest_pin",
-    "instagram_story",
-    "shopee_cover",
     "ad_creative",
-    "packaging_preview",
-    "whatsapp_catalog",
   ],
   toy: [
     "premium_product_photo",
-    "ecommerce_thumbnail",
     "lifestyle_mockup",
+    "ecommerce_thumbnail",
     "instagram_post",
     "pinterest_pin",
-    "instagram_story",
-    "shopee_cover",
-    "packaging_preview",
-    "ad_creative",
-    "whatsapp_catalog",
   ],
   printable: [
     "premium_product_photo",
     "lifestyle_mockup",
-    "ecommerce_thumbnail",
     "pinterest_pin",
     "instagram_post",
-    "instagram_story",
     "ad_creative",
-    "shopee_cover",
-    "packaging_preview",
-    "whatsapp_catalog",
   ],
   worksheet: [
     "premium_product_photo",
     "lifestyle_mockup",
     "pinterest_pin",
-    "ecommerce_thumbnail",
     "instagram_post",
-    "instagram_story",
     "ad_creative",
-    "shopee_cover",
-    "packaging_preview",
-    "whatsapp_catalog",
   ],
   flashcard: [
     "premium_product_photo",
@@ -135,17 +146,42 @@ const ASSET_PLAYLISTS: Record<ProductCategory, AssetType[]> = {
     "ecommerce_thumbnail",
     "instagram_post",
     "pinterest_pin",
-    "instagram_story",
-    "shopee_cover",
-    "packaging_preview",
-    "ad_creative",
-    "whatsapp_catalog",
   ],
-  merchandise: ASSET_LIST.map((a) => a.id),
-  tote_bag: ASSET_LIST.map((a) => a.id),
-  mug: ASSET_LIST.map((a) => a.id),
-  sticker: ASSET_LIST.map((a) => a.id),
-  educational_product: ASSET_LIST.map((a) => a.id),
+  merchandise: [
+    "premium_product_photo",
+    "lifestyle_mockup",
+    "ecommerce_thumbnail",
+    "instagram_post",
+    "ad_creative",
+  ],
+  tote_bag: [
+    "premium_product_photo",
+    "lifestyle_mockup",
+    "ecommerce_thumbnail",
+    "instagram_post",
+    "pinterest_pin",
+  ],
+  mug: [
+    "premium_product_photo",
+    "lifestyle_mockup",
+    "ecommerce_thumbnail",
+    "instagram_post",
+    "pinterest_pin",
+  ],
+  sticker: [
+    "premium_product_photo",
+    "lifestyle_mockup",
+    "ecommerce_thumbnail",
+    "instagram_post",
+    "pinterest_pin",
+  ],
+  educational_product: [
+    "premium_product_photo",
+    "lifestyle_mockup",
+    "ecommerce_thumbnail",
+    "instagram_post",
+    "ad_creative",
+  ],
 };
 
 export function getAssetPlaylist(product: ProductCategory): AssetType[] {

@@ -10,25 +10,41 @@ import { StylePicker } from "@/components/studio/StylePicker";
 import { GenerationProgress } from "@/components/studio/GenerationProgress";
 import { ResultsGallery } from "@/components/studio/ResultsGallery";
 import type {
+  AssetType,
   GeneratedAsset,
   ProductCategory,
   StylePreset,
 } from "@/types";
 import { getAssetPlaylist } from "@/lib/prompts/engine";
 import { detectProductFromFilename } from "@/lib/prompts/products";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { fileToCompressedDataUrl } from "@/lib/image";
+import { ASSETS } from "@/lib/prompts/platforms";
+import { ArrowRight, Sparkles, AlertCircle } from "lucide-react";
 
 type Step = "upload" | "configure" | "generating" | "results";
 
+interface UploadedImage {
+  url: string;
+  name: string;
+  dataUrl: string;
+}
+
+interface AssetError {
+  asset: AssetType;
+  message: string;
+  hint?: string;
+}
+
 export default function StudioPage() {
   const [step, setStep] = useState<Step>("upload");
-  const [image, setImage] = useState<{ url: string; name: string } | null>(null);
+  const [image, setImage] = useState<UploadedImage | null>(null);
   const [product, setProduct] = useState<ProductCategory>("kids_book");
   const [detected, setDetected] = useState<ProductCategory | null>(null);
   const [style, setStyle] = useState<StylePreset>("warm_parenting");
   const [notes, setNotes] = useState("");
   const [completed, setCompleted] = useState(0);
   const [assets, setAssets] = useState<GeneratedAsset[]>([]);
+  const [errors, setErrors] = useState<AssetError[]>([]);
 
   const playlist = useMemo(() => getAssetPlaylist(product), [product]);
 
@@ -41,31 +57,69 @@ export default function StudioPage() {
     }
   }, [image]);
 
+  async function handleFile(file: File) {
+    const dataUrl = await fileToCompressedDataUrl(file, 1024, "image/jpeg", 0.9);
+    setImage({
+      url: URL.createObjectURL(file),
+      name: file.name,
+      dataUrl,
+    });
+  }
+
   async function startGeneration() {
+    if (!image) return;
     setStep("generating");
     setCompleted(0);
     setAssets([]);
+    setErrors([]);
 
-    try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product, style, notes }),
-      });
-      const data: { assets: GeneratedAsset[] } = await res.json();
+    // Fire one request per asset in parallel — each runs in its own
+    // 60-second Vercel function so we don't share a single timeout budget.
+    await Promise.all(
+      playlist.map(async (asset) => {
+        try {
+          const res = await fetch("/api/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              product,
+              style,
+              asset,
+              notes,
+              imageDataUrl: image.dataUrl,
+            }),
+          });
 
-      // Reveal one by one for a smooth experience
-      for (let i = 0; i < data.assets.length; i++) {
-        await new Promise((r) => setTimeout(r, 250));
-        setCompleted(i + 1);
-        setAssets((prev) => [...prev, data.assets[i]]);
-      }
+          if (!res.ok) {
+            const body = (await res.json().catch(() => ({}))) as {
+              error?: string;
+              hint?: string;
+            };
+            setErrors((prev) => [
+              ...prev,
+              {
+                asset,
+                message: body.error ?? `HTTP ${res.status}`,
+                hint: body.hint,
+              },
+            ]);
+            setCompleted((c) => c + 1);
+            return;
+          }
 
-      setStep("results");
-    } catch (e) {
-      console.error(e);
-      setStep("configure");
-    }
+          const data = (await res.json()) as { asset: GeneratedAsset };
+          setAssets((prev) => [...prev, data.asset]);
+          setCompleted((c) => c + 1);
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Network error";
+          setErrors((prev) => [...prev, { asset, message }]);
+          setCompleted((c) => c + 1);
+        }
+      }),
+    );
+
+    setStep("results");
   }
 
   function reset() {
@@ -74,6 +128,7 @@ export default function StudioPage() {
     setAssets([]);
     setCompleted(0);
     setDetected(null);
+    setErrors([]);
   }
 
   return (
@@ -99,12 +154,16 @@ export default function StudioPage() {
                     Upload your product
                   </h1>
                   <p className="mt-3 text-muted">
-                    Any background. We'll auto-detect what it is and build your
-                    creative kit around it.
+                    Any background. We'll auto-detect what it is and restage your
+                    actual product in premium scenes.
                   </p>
                 </div>
                 <div className="mt-8">
-                  <UploadZone value={image} onChange={setImage} />
+                  <UploadZone
+                    value={image}
+                    onFile={handleFile}
+                    onClear={() => setImage(null)}
+                  />
                 </div>
               </motion.section>
             )}
@@ -165,19 +224,20 @@ export default function StudioPage() {
                       You'll get
                     </div>
                     <ul className="space-y-1.5 text-sm">
-                      {playlist.slice(0, 6).map((a) => (
+                      {playlist.map((a) => (
                         <li
                           key={a}
                           className="flex items-center gap-2 text-sand-700 dark:text-cream-200"
                         >
                           <span className="h-1.5 w-1.5 rounded-full bg-terracotta-400" />
-                          {a.replace(/_/g, " ")}
+                          {ASSETS[a].label}
                         </li>
                       ))}
-                      <li className="text-xs text-muted pt-1">
-                        + {playlist.length - 6} more
-                      </li>
                     </ul>
+                    <div className="mt-3 text-[11px] text-muted leading-relaxed">
+                      Your actual product photo is used as the reference — same
+                      product, restaged in {playlist.length} scenes.
+                    </div>
                   </div>
 
                   <button
@@ -208,6 +268,10 @@ export default function StudioPage() {
                   playlist={playlist}
                   completed={completed}
                 />
+                <p className="mt-4 text-xs text-center text-muted">
+                  This typically takes 20–45 seconds per asset. They appear as
+                  they finish.
+                </p>
               </motion.section>
             )}
 
@@ -224,11 +288,23 @@ export default function StudioPage() {
                   <div className="max-w-xl">
                     <span className="chip">Done</span>
                     <h1 className="heading-display mt-3 text-4xl sm:text-5xl leading-tight">
-                      Your kit is ready,
-                      <br />
-                      <span className="italic text-terracotta-500">
-                        beautifully.
-                      </span>
+                      {assets.length > 0 ? (
+                        <>
+                          Your kit is ready,
+                          <br />
+                          <span className="italic text-terracotta-500">
+                            beautifully.
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          Nothing landed.
+                          <br />
+                          <span className="italic text-terracotta-500">
+                            See the errors below.
+                          </span>
+                        </>
+                      )}
                     </h1>
                   </div>
                   <div className="flex gap-2">
@@ -245,12 +321,40 @@ export default function StudioPage() {
                   </div>
                 </div>
 
-                <div className="mt-10">
-                  <ResultsGallery
-                    assets={assets}
-                    onRegenerate={() => startGeneration()}
-                  />
-                </div>
+                {errors.length > 0 && (
+                  <div className="mt-8 space-y-2">
+                    {errors.map((e, i) => (
+                      <div
+                        key={i}
+                        className="flex gap-3 rounded-2xl border border-terracotta-200 bg-terracotta-50/60 dark:border-terracotta-800 dark:bg-terracotta-900/20 p-4"
+                      >
+                        <AlertCircle className="h-4 w-4 text-terracotta-500 shrink-0 mt-0.5" />
+                        <div className="text-sm">
+                          <div className="font-medium text-sand-900 dark:text-cream-50">
+                            {ASSETS[e.asset].label} failed
+                          </div>
+                          <div className="text-muted mt-0.5 break-words">
+                            {e.message}
+                          </div>
+                          {e.hint && (
+                            <div className="mt-1.5 text-xs text-terracotta-700 dark:text-terracotta-300">
+                              {e.hint}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {assets.length > 0 && (
+                  <div className="mt-10">
+                    <ResultsGallery
+                      assets={assets}
+                      onRegenerate={() => startGeneration()}
+                    />
+                  </div>
+                )}
               </motion.section>
             )}
           </AnimatePresence>
