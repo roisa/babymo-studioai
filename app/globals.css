@@ -1,0 +1,100 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 253 250 245; /* cream-50 */
+  --fg: 40 32 26; /* sand-900 */
+  --muted: 138 118 84;
+  --accent: 213 105 57;
+  --card: 255 255 255;
+  --border: 234 215 182;
+}
+
+.dark {
+  --bg: 21 17 13; /* sand-950 */
+  --fg: 248 245 241;
+  --muted: 168 145 111;
+  --accent: 226 134 88;
+  --card: 31 25 20;
+  --border: 60 49 36;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: rgb(var(--bg));
+  color: rgb(var(--fg));
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/60 dark:bg-sand-900/50 backdrop-blur-xl
+      border border-cream-200/70 dark:border-sand-800/80;
+  }
+
+  .card {
+    @apply bg-white dark:bg-sand-900 border border-cream-200 dark:border-sand-800
+      rounded-3xl shadow-soft;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5
+      text-sm font-medium transition-all duration-300 ease-out
+      focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta-400
+      disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-primary {
+    @apply btn bg-sand-900 text-cream-50 hover:bg-sand-800
+      dark:bg-cream-100 dark:text-sand-900 dark:hover:bg-cream-50
+      shadow-soft hover:shadow-softer;
+  }
+
+  .btn-accent {
+    @apply btn bg-terracotta-500 text-white hover:bg-terracotta-600 shadow-glow;
+  }
+
+  .btn-ghost {
+    @apply btn text-sand-700 dark:text-cream-200 hover:bg-cream-100 dark:hover:bg-sand-800;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1
+      text-xs font-medium bg-cream-100 dark:bg-sand-800
+      text-sand-700 dark:text-cream-200
+      border border-cream-200 dark:border-sand-700;
+  }
+
+  .heading-display {
+    @apply font-serif tracking-tight text-sand-900 dark:text-cream-50;
+    font-variation-settings: "opsz" 96;
+  }
+
+  .text-muted {
+    @apply text-sand-600 dark:text-sand-300;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .mask-fade-b {
+    -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent);
+    mask-image: linear-gradient(to bottom, black 70%, transparent);
+  }
+}
