@@ -9,6 +9,20 @@ ad creative — all styled in your chosen aesthetic.
 > Not another generic AI image tool. A specialized creative studio for tiny
 > kids, parenting, and educational brands.
 
+## Deploy
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froisa%2Fbabymo-studioai&project-name=baby-mo-studio&repository-name=baby-mo-studio&env=OPENAI_API_KEY,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY&envDescription=OpenAI%20key%20powers%20image%20generation.%20Supabase%20keys%20are%20optional%20%E2%80%94%20leave%20blank%20to%20skip%20persistence.&envLink=https%3A%2F%2Fgithub.com%2Froisa%2Fbabymo-studioai%2Fblob%2Fmain%2F.env.example)
+
+Click the button → Vercel clones the repo, prompts for env vars, builds, and
+hands you a `https://baby-mo-studio.vercel.app` URL you can share with your
+team. Every git branch also gets its own preview URL automatically.
+
+**Required env var for real generations:** `OPENAI_API_KEY`. Without it, the
+app gracefully falls back to warm placeholder images so previews still render.
+
+**Optional:** `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` +
+`SUPABASE_SERVICE_ROLE_KEY` if you wire up auth / persistence.
+
 ## Stack
 
 - **Next.js 14** (App Router) + **TypeScript**
