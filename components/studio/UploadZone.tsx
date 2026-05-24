@@ -1,33 +1,39 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { Upload, Image as ImageIcon, X } from "lucide-react";
+import { Upload, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface Props {
   value: { url: string; name: string } | null;
-  onChange: (val: { url: string; name: string } | null) => void;
+  onFile: (file: File) => Promise<void> | void;
+  onClear: () => void;
 }
 
-export function UploadZone({ value, onChange }: Props) {
+export function UploadZone({ value, onFile, onClear }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const handleFile = useCallback(
-    (file: File) => {
+    async (file: File) => {
       if (!file.type.startsWith("image/")) return;
-      const url = URL.createObjectURL(file);
-      onChange({ url, name: file.name });
+      setBusy(true);
+      try {
+        await onFile(file);
+      } finally {
+        setBusy(false);
+      }
     },
-    [onChange],
+    [onFile],
   );
 
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragging(false);
     const file = e.dataTransfer.files?.[0];
-    if (file) handleFile(file);
+    if (file) void handleFile(file);
   };
 
   return (
@@ -39,7 +45,7 @@ export function UploadZone({ value, onChange }: Props) {
         className="sr-only"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) handleFile(file);
+          if (file) void handleFile(file);
         }}
       />
 
@@ -53,7 +59,7 @@ export function UploadZone({ value, onChange }: Props) {
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
-          onClick={() => inputRef.current?.click()}
+          onClick={() => !busy && inputRef.current?.click()}
           className={cn(
             "relative cursor-pointer rounded-4xl border-2 border-dashed",
             "px-6 py-14 sm:py-20 text-center transition-all duration-300",
@@ -61,19 +67,24 @@ export function UploadZone({ value, onChange }: Props) {
             dragging
               ? "border-terracotta-400 bg-terracotta-50 dark:bg-terracotta-900/20 scale-[1.01]"
               : "border-cream-300 dark:border-sand-700 hover:border-terracotta-300",
+            busy && "pointer-events-none opacity-80",
           )}
         >
           <div className="mx-auto h-16 w-16 grid place-items-center rounded-3xl bg-cream-100 dark:bg-sand-800 text-terracotta-500 shadow-soft">
-            <Upload className="h-7 w-7" />
+            {busy ? (
+              <Loader2 className="h-7 w-7 animate-spin" />
+            ) : (
+              <Upload className="h-7 w-7" />
+            )}
           </div>
           <div className="mt-5 font-serif text-2xl text-sand-900 dark:text-cream-50">
-            Drop your product photo here
+            {busy ? "Preparing your photo…" : "Drop your product photo here"}
           </div>
           <p className="mt-2 text-sm text-muted max-w-md mx-auto">
             JPG or PNG. Any background — we'll handle the styling. Or click to
             browse.
           </p>
-          <div className="mt-6 flex justify-center gap-2 text-xs text-muted">
+          <div className="mt-6 flex justify-center flex-wrap gap-2 text-xs text-muted">
             <span className="chip">📖 books</span>
             <span className="chip">👕 t-shirts</span>
             <span className="chip">🧸 toys</span>
@@ -101,7 +112,7 @@ export function UploadZone({ value, onChange }: Props) {
               </span>
             </div>
             <button
-              onClick={() => onChange(null)}
+              onClick={onClear}
               className="btn-ghost text-xs px-3 py-1.5"
             >
               <X className="h-3 w-3" />
