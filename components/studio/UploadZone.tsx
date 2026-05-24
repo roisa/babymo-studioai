@@ -61,30 +61,60 @@ export function UploadZone({ value, onFile, onClear }: Props) {
           onDrop={onDrop}
           onClick={() => !busy && inputRef.current?.click()}
           className={cn(
-            "relative cursor-pointer rounded-4xl border-2 border-dashed",
-            "px-6 py-14 sm:py-20 text-center transition-all duration-300",
-            "bg-white/60 dark:bg-sand-900/40 backdrop-blur-sm",
-            dragging
-              ? "border-terracotta-400 bg-terracotta-50 dark:bg-terracotta-900/20 scale-[1.01]"
-              : "border-cream-300 dark:border-sand-700 hover:border-terracotta-300",
-            busy && "pointer-events-none opacity-80",
+            "relative cursor-pointer rounded-[2rem] overflow-hidden",
+            "px-6 py-16 sm:py-24 text-center",
+            "transition-all duration-500",
+            "glass shadow-glass dark:shadow-glass-dark",
+            dragging && "scale-[1.01]",
+            busy && "pointer-events-none opacity-90",
           )}
+          style={{
+            transitionTimingFunction: "var(--ease-spring)",
+            ...(dragging
+              ? {
+                  borderColor: "rgba(213,105,57,0.5)",
+                  boxShadow:
+                    "inset 0 1px 0 rgba(255,255,255,0.6), 0 0 0 4px rgba(213,105,57,0.18), 0 30px 60px -20px rgba(213,105,57,0.25)",
+                }
+              : {}),
+          }}
         >
-          <div className="mx-auto h-16 w-16 grid place-items-center rounded-3xl bg-cream-100 dark:bg-sand-800 text-terracotta-500 shadow-soft">
+          {/* ambient inside */}
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 opacity-60"
+            style={{
+              background:
+                "radial-gradient(circle at 30% 20%, rgba(244,205,180,0.6) 0%, transparent 50%), radial-gradient(circle at 70% 80%, rgba(230,237,225,0.6) 0%, transparent 50%)",
+            }}
+          />
+
+          <motion.div
+            animate={busy ? { scale: 1 } : { scale: [1, 1.04, 1] }}
+            transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
+            className="mx-auto h-20 w-20 grid place-items-center rounded-[1.5rem] text-terracotta-500"
+            style={{
+              background: "rgba(255,255,255,0.85)",
+              backdropFilter: "blur(16px)",
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,0.6), 0 12px 28px -8px rgba(213,105,57,0.30), 0 24px 60px -16px rgba(213,105,57,0.18)",
+            }}
+          >
             {busy ? (
-              <Loader2 className="h-7 w-7 animate-spin" />
+              <Loader2 className="h-8 w-8 animate-spin" />
             ) : (
-              <Upload className="h-7 w-7" />
+              <Upload className="h-8 w-8" strokeWidth={1.8} />
             )}
-          </div>
-          <div className="mt-5 font-serif text-2xl text-sand-900 dark:text-cream-50">
+          </motion.div>
+
+          <div className="mt-6 font-serif text-2xl sm:text-3xl text-sand-900 dark:text-cream-50 tracking-tight">
             {busy ? "Preparing your photo…" : "Drop your product photo here"}
           </div>
-          <p className="mt-2 text-sm text-muted max-w-md mx-auto">
+          <p className="mt-2.5 text-sm text-muted max-w-md mx-auto leading-relaxed">
             JPG or PNG. Any background — we'll handle the styling. Or click to
             browse.
           </p>
-          <div className="mt-6 flex justify-center flex-wrap gap-2 text-xs text-muted">
+          <div className="mt-7 flex justify-center flex-wrap gap-2">
             <span className="chip">📖 books</span>
             <span className="chip">👕 t-shirts</span>
             <span className="chip">🧸 toys</span>
@@ -95,7 +125,8 @@ export function UploadZone({ value, onFile, onClear }: Props) {
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative rounded-4xl overflow-hidden border border-cream-200 dark:border-sand-800 bg-white dark:bg-sand-900 shadow-soft"
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="relative rounded-[2rem] overflow-hidden card shadow-floating"
         >
           <div className="aspect-[16/9] relative bg-cream-100 dark:bg-sand-800">
             <img
@@ -103,17 +134,24 @@ export function UploadZone({ value, onFile, onClear }: Props) {
               alt={value.name}
               className="absolute inset-0 w-full h-full object-contain"
             />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                boxShadow:
+                  "inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.10)",
+              }}
+            />
           </div>
-          <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-t border-cream-200 dark:border-sand-800">
+          <div className="flex items-center justify-between gap-3 px-5 py-4">
             <div className="flex items-center gap-2 min-w-0">
               <ImageIcon className="h-4 w-4 text-muted shrink-0" />
-              <span className="text-sm truncate text-sand-700 dark:text-cream-200">
+              <span className="text-sm truncate text-sand-700 dark:text-cream-200 tracking-tight">
                 {value.name}
               </span>
             </div>
             <button
               onClick={onClear}
-              className="btn-ghost text-xs px-3 py-1.5"
+              className="btn-glass text-xs px-3.5 py-1.5"
             >
               <X className="h-3 w-3" />
               Replace

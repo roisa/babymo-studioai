@@ -134,8 +134,23 @@ export default function StudioPage() {
   return (
     <>
       <Nav />
-      <main className="pt-28 sm:pt-32 pb-20">
-        <div className="mx-auto max-w-6xl px-6">
+      <main className="relative pt-28 sm:pt-32 pb-20 overflow-hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 bg-mesh-light dark:bg-mesh-dark opacity-80"
+        />
+        <div aria-hidden className="absolute inset-0 -z-10">
+          <div
+            className="orb bg-terracotta-200/45 dark:bg-terracotta-500/20 animate-drift-slow"
+            style={{ top: "-8rem", right: "-6rem", width: "28rem", height: "28rem" }}
+          />
+          <div
+            className="orb bg-sage-200/45 dark:bg-sage-600/15 animate-drift-slow"
+            style={{ top: "30rem", left: "-8rem", width: "30rem", height: "30rem", animationDelay: "-9s" }}
+          />
+        </div>
+
+        <div className="mx-auto max-w-6xl px-6 relative">
           <Stepper step={step} />
 
           <AnimatePresence mode="wait">
@@ -186,10 +201,10 @@ export default function StudioPage() {
                   <StylePicker value={style} onChange={setStyle} />
 
                   <div>
-                    <div className="font-serif text-lg text-sand-900 dark:text-cream-50">
-                      Brand notes <span className="text-muted text-sm">(optional)</span>
+                    <div className="font-serif text-xl text-sand-900 dark:text-cream-50 tracking-tight">
+                      Brand notes <span className="text-muted text-sm font-sans">(optional)</span>
                     </div>
-                    <div className="text-xs text-muted mt-0.5 mb-3">
+                    <div className="text-xs text-muted mt-1 mb-3">
                       Anything special — brand name, color must-haves, vibe words.
                     </div>
                     <textarea
@@ -197,10 +212,7 @@ export default function StudioPage() {
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="e.g. brand name 'Little Fern', sage + cream palette, gentle Montessori feeling"
                       rows={3}
-                      className="w-full rounded-2xl border border-cream-200 dark:border-sand-800
-                        bg-white dark:bg-sand-900 px-4 py-3 text-sm
-                        placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-terracotta-300
-                        resize-none"
+                      className="input resize-none"
                     />
                   </div>
                 </div>
