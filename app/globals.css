@@ -1,25 +1,40 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg: 253 250 245; /* cream-50 */
-  --fg: 40 32 26; /* sand-900 */
+  --bg: 253 250 245;
+  --fg: 40 32 26;
   --muted: 138 118 84;
   --accent: 213 105 57;
   --card: 255 255 255;
   --border: 234 215 182;
+
+  /* iOS-like material tokens */
+  --glass-tint: 255 255 255;
+  --glass-tint-alpha: 0.62;
+  --glass-inner-highlight: rgba(255, 255, 255, 0.7);
+  --hairline: rgba(40, 32, 26, 0.08);
+
+  /* Spring easing curves */
+  --ease-spring: cubic-bezier(0.22, 1.2, 0.36, 1);
+  --ease-out-ios: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark {
-  --bg: 21 17 13; /* sand-950 */
+  --bg: 21 17 13;
   --fg: 248 245 241;
   --muted: 168 145 111;
   --accent: 226 134 88;
   --card: 31 25 20;
   --border: 60 49 36;
+
+  --glass-tint: 31 25 20;
+  --glass-tint-alpha: 0.55;
+  --glass-inner-highlight: rgba(255, 255, 255, 0.06);
+  --hairline: rgba(255, 255, 255, 0.07);
 }
 
 html,
@@ -35,52 +50,212 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Subtle global selection styling */
+::selection {
+  background-color: rgba(213, 105, 57, 0.22);
+}
+
 @layer components {
+  /* ---------- Liquid Glass materials ---------- */
   .glass {
-    @apply bg-white/60 dark:bg-sand-900/50 backdrop-blur-xl
-      border border-cream-200/70 dark:border-sand-800/80;
+    background-color: rgba(var(--glass-tint), var(--glass-tint-alpha));
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--hairline);
+    box-shadow:
+      inset 0 1px 0 var(--glass-inner-highlight),
+      inset 0 -1px 0 rgba(40, 32, 26, 0.04),
+      0 1px 2px rgba(40, 32, 26, 0.04),
+      0 12px 32px -12px rgba(40, 32, 26, 0.10);
   }
 
+  .dark .glass {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+      0 1px 2px rgba(0, 0, 0, 0.2),
+      0 16px 40px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Denser glass for nav, modals, popovers */
+  .glass-thick {
+    background-color: rgba(var(--glass-tint), calc(var(--glass-tint-alpha) + 0.22));
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--hairline);
+    box-shadow:
+      inset 0 1px 0 var(--glass-inner-highlight),
+      0 1px 2px rgba(40, 32, 26, 0.04),
+      0 18px 40px -12px rgba(40, 32, 26, 0.14);
+  }
+
+  /* ---------- Elevated card ---------- */
   .card {
-    @apply bg-white dark:bg-sand-900 border border-cream-200 dark:border-sand-800
-      rounded-3xl shadow-soft;
+    @apply bg-white dark:bg-sand-900 rounded-[1.75rem];
+    border: 1px solid var(--hairline);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      0 1px 2px rgba(40, 32, 26, 0.04),
+      0 8px 24px -10px rgba(40, 32, 26, 0.10);
+  }
+  .dark .card {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 1px 2px rgba(0, 0, 0, 0.2),
+      0 12px 32px -10px rgba(0, 0, 0, 0.4);
   }
 
+  /* Lighter surface for grouped form panels */
+  .surface {
+    @apply bg-white/70 dark:bg-sand-900/50 rounded-[1.5rem];
+    border: 1px solid var(--hairline);
+    backdrop-filter: blur(8px);
+  }
+
+  /* ---------- Buttons (iOS pill, springy, inner gloss) ---------- */
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5
-      text-sm font-medium transition-all duration-300 ease-out
+      text-sm font-medium tracking-tight
       focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta-400
-      disabled:opacity-50 disabled:pointer-events-none;
+      focus-visible:ring-offset-2 focus-visible:ring-offset-cream-50 dark:focus-visible:ring-offset-sand-950
+      disabled:opacity-50 disabled:pointer-events-none
+      transition-[transform,background-color,box-shadow,opacity] duration-300;
+    transition-timing-function: var(--ease-spring);
+    will-change: transform;
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.965);
+    transition-duration: 120ms;
   }
 
   .btn-primary {
-    @apply btn bg-sand-900 text-cream-50 hover:bg-sand-800
-      dark:bg-cream-100 dark:text-sand-900 dark:hover:bg-cream-50
-      shadow-soft hover:shadow-softer;
+    @apply btn bg-sand-900 text-cream-50 dark:bg-cream-100 dark:text-sand-900;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0) 60%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 1px 2px rgba(40, 32, 26, 0.16),
+      0 10px 24px -10px rgba(40, 32, 26, 0.28);
+  }
+  .btn-primary:hover:not(:disabled) {
+    @apply bg-sand-800 dark:bg-cream-50;
   }
 
   .btn-accent {
-    @apply btn bg-terracotta-500 text-white hover:bg-terracotta-600 shadow-glow;
+    @apply btn text-white;
+    background-color: rgb(213, 105, 57);
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 55%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      inset 0 -1px 0 rgba(120, 50, 20, 0.15),
+      0 0 0 1px rgba(213, 105, 57, 0.30),
+      0 12px 28px -10px rgba(213, 105, 57, 0.50);
+  }
+  .btn-accent:hover:not(:disabled) {
+    background-color: rgb(191, 82, 45);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.30),
+      inset 0 -1px 0 rgba(120, 50, 20, 0.2),
+      0 0 0 1px rgba(213, 105, 57, 0.35),
+      0 16px 36px -10px rgba(213, 105, 57, 0.60);
   }
 
   .btn-ghost {
-    @apply btn text-sand-700 dark:text-cream-200 hover:bg-cream-100 dark:hover:bg-sand-800;
+    @apply btn text-sand-700 dark:text-cream-200;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background-color: rgba(40, 32, 26, 0.05);
+  }
+  .dark .btn-ghost:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.06);
   }
 
+  /* Glass pill button — for navbar items, secondary CTAs over photos */
+  .btn-glass {
+    @apply btn text-sand-800 dark:text-cream-100;
+    background-color: rgba(var(--glass-tint), calc(var(--glass-tint-alpha) - 0.05));
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--hairline);
+    box-shadow: inset 0 1px 0 var(--glass-inner-highlight);
+  }
+
+  /* ---------- Chips / pills ---------- */
   .chip {
     @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1
-      text-xs font-medium bg-cream-100 dark:bg-sand-800
-      text-sand-700 dark:text-cream-200
-      border border-cream-200 dark:border-sand-700;
+      text-xs font-medium tracking-tight
+      text-sand-700 dark:text-cream-200;
+    background-color: rgba(var(--glass-tint), 0.7);
+    border: 1px solid var(--hairline);
+    box-shadow: inset 0 1px 0 var(--glass-inner-highlight);
   }
 
+  /* Solid filled chip variant for emphasis */
+  .chip-solid {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1
+      text-xs font-medium tracking-tight
+      bg-sand-900 text-cream-50 dark:bg-cream-100 dark:text-sand-900;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 55%);
+  }
+
+  /* ---------- Inputs ---------- */
+  .input {
+    @apply w-full rounded-2xl px-4 py-3 text-sm
+      bg-white/70 dark:bg-sand-900/60
+      text-sand-900 dark:text-cream-50
+      placeholder:text-sand-400 dark:placeholder:text-sand-500
+      focus:outline-none
+      transition-shadow duration-200;
+    border: 1px solid var(--hairline);
+    box-shadow: inset 0 1px 0 var(--glass-inner-highlight);
+  }
+  .input:focus {
+    box-shadow:
+      inset 0 1px 0 var(--glass-inner-highlight),
+      0 0 0 3px rgba(213, 105, 57, 0.22);
+    border-color: rgba(213, 105, 57, 0.4);
+  }
+
+  /* ---------- Typography ---------- */
   .heading-display {
-    @apply font-serif tracking-tight text-sand-900 dark:text-cream-50;
+    @apply font-serif text-sand-900 dark:text-cream-50;
+    letter-spacing: -0.035em;
     font-variation-settings: "opsz" 96;
   }
 
   .text-muted {
     @apply text-sand-600 dark:text-sand-300;
+  }
+
+  .kbd {
+    @apply inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5
+      rounded-md text-[10px] font-medium font-mono
+      bg-white/70 dark:bg-sand-800/70 text-sand-700 dark:text-cream-200;
+    border: 1px solid var(--hairline);
+    box-shadow:
+      inset 0 -1px 0 rgba(40, 32, 26, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  /* Hairline divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--hairline) 20%,
+      var(--hairline) 80%,
+      transparent
+    );
+  }
+
+  /* Pressable wrapper (scale on active) for non-button elements */
+  .pressable {
+    transition: transform 200ms var(--ease-spring);
+    will-change: transform;
+  }
+  .pressable:active {
+    transform: scale(0.97);
+    transition-duration: 120ms;
   }
 }
 
@@ -96,5 +271,41 @@ body {
   .mask-fade-b {
     -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent);
     mask-image: linear-gradient(to bottom, black 70%, transparent);
+  }
+  .mask-fade-t {
+    -webkit-mask-image: linear-gradient(to top, black 70%, transparent);
+    mask-image: linear-gradient(to top, black 70%, transparent);
+  }
+
+  /* Ambient orb — used in backgrounds for layered depth */
+  .orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(60px);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  /* Sheen sweep on hover for cards */
+  .sheen {
+    position: relative;
+    overflow: hidden;
+  }
+  .sheen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      115deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.25) 50%,
+      transparent 70%
+    );
+    transform: translateX(-100%);
+    transition: transform 1.1s var(--ease-out-ios);
+    pointer-events: none;
+  }
+  .sheen:hover::after {
+    transform: translateX(100%);
   }
 }

@@ -68,27 +68,76 @@ const config: Config = {
           "sans-serif",
         ],
       },
+      letterSpacing: {
+        "display-tight": "-0.035em",
+      },
+      transitionTimingFunction: {
+        spring: "cubic-bezier(0.22, 1.2, 0.36, 1)",
+        "ios-out": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "ios-in": "cubic-bezier(0.4, 0, 0.2, 1)",
+      },
+      backdropSaturate: {
+        180: "1.8",
+      },
       boxShadow: {
+        // Soft ambient depth (cards, surfaces)
         soft: "0 1px 2px rgba(40,32,26,0.04), 0 8px 24px -8px rgba(40,32,26,0.08)",
         softer:
           "0 1px 2px rgba(40,32,26,0.03), 0 24px 48px -16px rgba(40,32,26,0.10)",
-        glow: "0 0 0 1px rgba(213,105,57,0.15), 0 18px 50px -12px rgba(213,105,57,0.30)",
+
+        // iOS Liquid Glass treatment — multi-layer with inner highlight
+        glass:
+          "0 1px 0 rgba(255,255,255,0.6) inset, 0 -1px 0 rgba(40,32,26,0.04) inset, 0 1px 2px rgba(40,32,26,0.04), 0 12px 32px -12px rgba(40,32,26,0.12)",
+        "glass-dark":
+          "0 1px 0 rgba(255,255,255,0.06) inset, 0 -1px 0 rgba(0,0,0,0.2) inset, 0 1px 2px rgba(0,0,0,0.2), 0 16px 40px -12px rgba(0,0,0,0.5)",
+
+        // Elevated, floating surfaces
+        lift: "0 2px 4px rgba(40,32,26,0.06), 0 12px 28px -10px rgba(40,32,26,0.14), 0 40px 80px -32px rgba(40,32,26,0.18)",
+        floating:
+          "0 1px 0 rgba(255,255,255,0.6) inset, 0 4px 8px -2px rgba(40,32,26,0.06), 0 24px 48px -12px rgba(40,32,26,0.18), 0 60px 120px -36px rgba(40,32,26,0.22)",
+
+        // Pressed / inset
+        pressed:
+          "0 1px 2px rgba(40,32,26,0.10) inset, 0 0 0 1px rgba(40,32,26,0.04) inset",
+
+        // Accent glow (terracotta CTAs)
+        glow: "0 1px 0 rgba(255,255,255,0.3) inset, 0 0 0 1px rgba(213,105,57,0.20), 0 12px 28px -8px rgba(213,105,57,0.40)",
+
+        // Hairline ring used as base for many glass surfaces
+        hairline: "0 0 0 1px rgba(40,32,26,0.06)",
+        "hairline-dark": "0 0 0 1px rgba(255,255,255,0.06)",
       },
       borderRadius: {
         "4xl": "2rem",
         "5xl": "2.5rem",
+        squircle: "1.75rem",
       },
       backgroundImage: {
         "warm-gradient":
           "radial-gradient(at 20% 10%, #fae7da 0%, transparent 50%), radial-gradient(at 80% 0%, #f3e8d4 0%, transparent 45%), radial-gradient(at 60% 90%, #e6ede1 0%, transparent 55%)",
         "warm-gradient-dark":
           "radial-gradient(at 20% 10%, rgba(213,105,57,0.18) 0%, transparent 50%), radial-gradient(at 80% 0%, rgba(200,163,110,0.12) 0%, transparent 45%), radial-gradient(at 60% 90%, rgba(104,136,87,0.12) 0%, transparent 55%)",
+        // Subtle ambient mesh for app surfaces
+        "mesh-light":
+          "radial-gradient(circle at 8% 12%, rgba(244,205,180,0.55) 0%, transparent 38%), radial-gradient(circle at 92% 8%, rgba(243,232,212,0.6) 0%, transparent 36%), radial-gradient(circle at 78% 88%, rgba(230,237,225,0.55) 0%, transparent 40%), radial-gradient(circle at 18% 92%, rgba(250,231,218,0.4) 0%, transparent 36%)",
+        "mesh-dark":
+          "radial-gradient(circle at 8% 12%, rgba(213,105,57,0.14) 0%, transparent 38%), radial-gradient(circle at 92% 8%, rgba(200,163,110,0.10) 0%, transparent 36%), radial-gradient(circle at 78% 88%, rgba(104,136,87,0.10) 0%, transparent 40%), radial-gradient(circle at 18% 92%, rgba(213,105,57,0.06) 0%, transparent 36%)",
+        // Inner gloss for buttons & chips (top-down highlight)
+        "ios-gloss":
+          "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 50%)",
+        "ios-gloss-dark":
+          "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 50%)",
+        // Subtle grain
+        grain:
+          "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
       },
       animation: {
         "fade-in": "fadeIn 0.6s ease-out forwards",
         "slide-up": "slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         shimmer: "shimmer 2.4s linear infinite",
         float: "float 6s ease-in-out infinite",
+        "drift-slow": "drift 18s ease-in-out infinite",
+        breath: "breath 5s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -106,6 +155,14 @@ const config: Config = {
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-8px)" },
+        },
+        drift: {
+          "0%, 100%": { transform: "translate3d(0,0,0) scale(1)" },
+          "50%": { transform: "translate3d(2%, -3%, 0) scale(1.06)" },
+        },
+        breath: {
+          "0%, 100%": { opacity: "0.85", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.02)" },
         },
       },
     },

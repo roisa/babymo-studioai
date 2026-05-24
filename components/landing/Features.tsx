@@ -72,16 +72,25 @@ export function Features() {
           {FEATURES.map((f, i) => (
             <motion.div
               key={f.title}
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.6, delay: i * 0.05 }}
-              className="card p-6 hover:shadow-softer hover:-translate-y-0.5 transition-all duration-500"
+              transition={{ duration: 0.7, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{ y: -4 }}
+              className="card p-6 transition-shadow duration-500 hover:shadow-lift"
             >
-              <div className="h-10 w-10 grid place-items-center rounded-2xl bg-cream-100 dark:bg-sand-800 text-terracotta-500">
-                <f.icon className="h-5 w-5" />
+              <div
+                className="h-11 w-11 grid place-items-center rounded-2xl text-terracotta-500"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.7), rgba(244,205,180,0.5))",
+                  boxShadow:
+                    "inset 0 1px 0 rgba(255,255,255,0.7), 0 6px 14px -4px rgba(213,105,57,0.20)",
+                }}
+              >
+                <f.icon className="h-5 w-5" strokeWidth={1.8} />
               </div>
-              <div className="mt-5 font-serif text-xl text-sand-900 dark:text-cream-50">
+              <div className="mt-5 font-serif text-xl text-sand-900 dark:text-cream-50 tracking-tight">
                 {f.title}
               </div>
               <p className="mt-2 text-sm text-muted leading-relaxed">{f.body}</p>
